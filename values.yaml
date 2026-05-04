@@ -1,0 +1,176 @@
+image:
+  repository: ghcr.io/authn-sh/authn
+  tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount:
+  web: 2
+  worker: 1
+
+resources:
+  web:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 1000m, memory: 1Gi }
+  worker:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 1000m, memory: 1Gi }
+  scheduler:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits:   { cpu: 200m, memory: 256Mi }
+  bootstrap:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+env:
+  AUTHN_APP_URL: ""
+  AUTHN_ROUTING_MODE: "subdomain"
+  AUTHN_DEFAULT_FROM_EMAIL: ""
+  APP_ENV: production
+  APP_DEBUG: "false"
+  LOG_CHANNEL: stderr
+  LOG_LEVEL: info
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: redis
+  SESSION_DRIVER: cookie
+  MAIL_MAILER: smtp
+  MAIL_HOST: ""
+  MAIL_PORT: "587"
+  MAIL_FROM_ADDRESS: ""
+  MAIL_FROM_NAME: "authn.sh"
+
+extraEnv: []
+
+secrets:
+  existingSecret: ""
+  values:
+    APP_KEY: ""
+    AUTHN_BOOTSTRAP_ADMIN_EMAIL: ""
+    AUTHN_BOOTSTRAP_ADMIN_PASSWORD: ""
+    AUTHN_BOOTSTRAP_WORKSPACE_NAME: "My workspace"
+    DB_PASSWORD: ""
+    REDIS_PASSWORD: ""
+    MAIL_PASSWORD: ""
+
+postgresql:
+  enabled: true
+  auth:
+    database: authn
+    username: authn
+    existingSecret: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+
+externalDatabase:
+  host: ""
+  port: 5432
+  database: authn
+  username: authn
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+externalRedis:
+  host: ""
+  port: 6379
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: authn.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: authn-tls
+      hosts:
+        - authn.example.com
+        - "*.authn.example.com"
+
+certManager:
+  enabled: false
+  clusterIssuer: ""
+  dnsSolver: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 82
+
+securityContext:
+  runAsUser: 82
+  runAsGroup: 82
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: ["ALL"]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+networkPolicy:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+
+bootstrap:
+  enabled: true
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+
+scheduler:
+  enabled: true
+
+probes:
+  liveness:
+    path: /up
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    path: /up
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3

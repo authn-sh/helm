@@ -1,0 +1,6 @@
+charts/*.tgz
+charts/*/charts/
+.helm/
+dist/
+*.swp
+.DS_Store

@@ -1,0 +1,50 @@
+name: release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.20.0
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: helm dependency update
+        run: helm dependency update .
+
+      - name: helm package
+        run: helm package . -d dist
+
+      - name: Push to GHCR (OCI)
+        run: |
+          for chart in dist/*.tgz; do
+            helm push "$chart" oci://ghcr.io/authn-sh/charts
+          done
+
+      - name: Configure git for gh-pages
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Update gh-pages index
+        run: |
+          git fetch origin gh-pages || true
+          git worktree add /tmp/pages gh-pages || git worktree add -B gh-pages /tmp/pages origin/main
+          cp dist/*.tgz /tmp/pages/
+          cd /tmp/pages
+          helm repo index . --url "https://authn-sh.github.io/helm" --merge index.yaml || helm repo index . --url "https://authn-sh.github.io/helm"
+          git add -A
+          git commit -m "release: ${{ github.ref_name }}" || echo "nothing to commit"
+          git push origin gh-pages

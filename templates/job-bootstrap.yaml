@@ -1,0 +1,48 @@
+{{- if .Values.bootstrap.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "authn.fullname" . }}-bootstrap
+  labels:
+    {{- include "authn.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bootstrap
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: {{ .Values.bootstrap.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.bootstrap.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "authn.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: bootstrap
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "authn.serviceAccountName" . }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext: {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: bootstrap
+          image: {{ include "authn.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: {{- toYaml .Values.securityContext | nindent 12 }}
+          command: [/bin/sh, -c]
+          args:
+            - |
+              set -eu
+              php artisan migrate --force
+              php artisan authn:bootstrap \
+                --email="${AUTHN_BOOTSTRAP_ADMIN_EMAIL}" \
+                --password="${AUTHN_BOOTSTRAP_ADMIN_PASSWORD}" \
+                --workspace="${AUTHN_BOOTSTRAP_WORKSPACE_NAME}"
+          envFrom:
+            - configMapRef:
+                name: {{ include "authn.fullname" . }}
+            - secretRef:
+                name: {{ include "authn.secretName" . }}
+          resources: {{- toYaml .Values.resources.bootstrap | nindent 12 }}
+{{- end }}

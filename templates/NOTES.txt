@@ -1,0 +1,30 @@
+authn.sh has been deployed.
+
+1. Bootstrap status (the post-install Job creates the `_admin` env + the
+   first operator + initial API keys):
+
+     kubectl logs -n {{ .Release.Namespace }} job/{{ include "authn.fullname" . }}-bootstrap
+
+   The first operator's `pk_live_…` and `sk_live_…` keys are in this log
+   exactly once. Save them.
+
+2. Reach the app:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+
+     https://{{ .host }}{{ (index .paths 0).path }}
+
+   Sign in at /sign-in with the bootstrap credentials you supplied.
+{{- end }}
+{{- else }}
+
+     kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "authn.fullname" . }} 8080:{{ .Values.service.port }}
+     open http://localhost:8080/sign-in
+{{- end }}
+
+3. Routing mode is set to: {{ .Values.env.AUTHN_ROUTING_MODE | default "subdomain" }}.
+{{- if eq (.Values.env.AUTHN_ROUTING_MODE | default "subdomain") "subdomain" }}
+   Make sure your wildcard DNS + TLS cert covers `*.{{ index .Values.ingress.hosts 0 "host" }}`.
+{{- end }}
+
+4. Read the docs at https://docs.authn.sh.

@@ -1,0 +1,43 @@
+image:
+  pullPolicy: IfNotPresent
+
+replicaCount:
+  web: 1
+  worker: 1
+
+env:
+  AUTHN_APP_URL: http://authn.local
+  AUTHN_ROUTING_MODE: path
+
+secrets:
+  values:
+    APP_KEY: "base64:Y2lfb25seV9hcHBfa2V5X2RvX25vdF91c2VfaW5fcHJvZA=="
+    AUTHN_BOOTSTRAP_ADMIN_EMAIL: "ci@example.com"
+    AUTHN_BOOTSTRAP_ADMIN_PASSWORD: "ci-only-password-do-not-use"
+    DB_PASSWORD: "ci-postgres"
+    REDIS_PASSWORD: "ci-redis"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "ci-postgres"
+  primary:
+    persistence:
+      enabled: false
+
+redis:
+  enabled: true
+  auth:
+    password: "ci-redis"
+  master:
+    persistence:
+      enabled: false
+
+ingress:
+  enabled: false
+
+pdb:
+  enabled: false
+
+bootstrap:
+  enabled: true
