@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] — 2026-05-10
+
+### Changed
+
+- `appVersion` bumped to `0.3.0` — picks up the v0.3 application release (multi-factor authentication: TOTP + backup codes, second-factor Challenge wiring, BAPI MFA admin overrides).
+
+No template / values changes: v0.3 added no new required env vars, secrets, or external dependencies. Existing values from a 0.2.x install upgrade cleanly. The MFA surface is fully internal to the authn server.
+
 ## [0.2.0] — 2026-05-10
 
 ### Changed
