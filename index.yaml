@@ -2,8 +2,42 @@ apiVersion: v1
 entries:
   authn:
   - apiVersion: v2
+    appVersion: 0.2.0
+    created: "2026-05-10T10:22:47.099492495Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.x.x
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.x.x
+    description: Self-hosted authentication-as-a-service. Account Portal, Dashboard,
+      FAPI, BAPI, and webhooks in one chart.
+    digest: 493442d2bf12158b13981a5107270be3367ff38fd2abdc338728d7aa56658cf3
+    home: https://authn.sh
+    icon: https://authn.sh/icon.png
+    keywords:
+    - authn
+    - authentication
+    - identity
+    - sso
+    - jwt
+    maintainers:
+    - name: authn.sh
+      url: https://authn.sh
+    name: authn
+    sources:
+    - https://github.com/authn-sh/authn
+    - https://github.com/authn-sh/helm
+    type: application
+    urls:
+    - https://authn-sh.github.io/helm/authn-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-09T03:01:23.082116537Z"
+    created: "2026-05-10T10:22:47.08751341Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -35,4 +69,4 @@ entries:
     urls:
     - https://authn-sh.github.io/helm/authn-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-09T03:01:23.070808284Z"
+generated: "2026-05-10T10:22:47.075240357Z"
