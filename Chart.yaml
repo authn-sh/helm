@@ -3,7 +3,7 @@ name: authn
 description: Self-hosted authentication-as-a-service. Account Portal, Dashboard, FAPI, BAPI, and webhooks in one chart.
 type: application
 version: 0.4.0
-appVersion: "0.3.0"
+appVersion: "0.4.0"
 home: https://authn.sh
 sources:
   - https://github.com/authn-sh/authn
