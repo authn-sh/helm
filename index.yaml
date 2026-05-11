@@ -2,8 +2,42 @@ apiVersion: v1
 entries:
   authn:
   - apiVersion: v2
+    appVersion: 0.5.0
+    created: "2026-05-11T22:21:23.797426086Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.x.x
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.x.x
+    description: Self-hosted authentication-as-a-service. Account Portal, Dashboard,
+      FAPI, BAPI, and webhooks in one chart.
+    digest: 996b4479df02c2b4acfeccd4d43068088ec37a7525c2d10fcb475c638d26bc67
+    home: https://authn.sh
+    icon: https://authn.sh/icon.png
+    keywords:
+    - authn
+    - authentication
+    - identity
+    - sso
+    - jwt
+    maintainers:
+    - name: authn.sh
+      url: https://authn.sh
+    name: authn
+    sources:
+    - https://github.com/authn-sh/authn
+    - https://github.com/authn-sh/helm
+    type: application
+    urls:
+    - https://authn-sh.github.io/helm/authn-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
     appVersion: 0.4.0
-    created: "2026-05-11T15:32:50.345272991Z"
+    created: "2026-05-11T22:21:23.786585256Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -37,7 +71,7 @@ entries:
     version: 0.4.0
   - apiVersion: v2
     appVersion: 0.3.0
-    created: "2026-05-11T15:32:50.334283799Z"
+    created: "2026-05-11T22:21:23.774917221Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -71,7 +105,7 @@ entries:
     version: 0.3.0
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2026-05-11T15:32:50.322006826Z"
+    created: "2026-05-11T22:21:23.763378134Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -105,7 +139,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-11T15:32:50.306479666Z"
+    created: "2026-05-11T22:21:23.752628949Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -137,4 +171,4 @@ entries:
     urls:
     - https://authn-sh.github.io/helm/authn-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-11T15:32:50.289612413Z"
+generated: "2026-05-11T22:21:23.740957123Z"
