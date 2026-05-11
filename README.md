@@ -92,6 +92,23 @@ helm upgrade authn . \
 
 The post-install/upgrade Job re-runs migrations idempotently. Don't restart pods manually before the Job finishes.
 
+## Operating an instance
+
+The chart serves three groups of HTTP surfaces from the same pod:
+
+- **FAPI** — per-environment, public to end-user browsers. Reached as `<routing_label>.<APP_HOST>` (subdomain mode) or `<APP_HOST>/<routing_label>` (path mode). All `/v1/me/*`, `/v1/sign-ins`, `/v1/sign-ups`, and the public `GET /v1/localization/{locale}` endpoint live here.
+- **BAPI** — operator-facing, authenticated with a `sk_live_…` secret key. Reached at `api.<APP_HOST>` (subdomain mode) or `<APP_HOST>/api` (path mode). All `/v1/users`, `/v1/sessions`, `/v1/instance/*` endpoints live here.
+- **Dashboard + Account Portal** — server-rendered pages reached at `<APP_HOST>` and `<routing_label>.<APP_HOST>/sign-in` respectively.
+
+Two BAPI endpoints added in v0.5 to be aware of when planning ingress / WAF rules:
+
+- `PATCH /v1/instance/appearance` — operator-only; updates the per-environment appearance blob (CSS variable map, element-class map, layout opts). Called by the dashboard editor.
+- `PATCH /v1/instance/localization` — operator-only; updates the per-environment localization overrides (sparse JSON keyed by locale + key path).
+
+One **public** FAPI endpoint added in v0.5 to be aware of:
+
+- `GET /v1/localization/{locale}` — CORS-open, hit on every Account Portal / SDK page load. The app emits a short TTL with `ETag`-based revalidation. If you front your FAPI host with your own CDN, respect these headers so that operator edits in the dashboard propagate to end-user browsers within seconds rather than minutes.
+
 ## Acceptance / smoke
 
 ```bash

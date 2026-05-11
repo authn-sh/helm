@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0] — 2026-05-11
+
+### Changed
+
+- Chart `version` bumped to `0.5.0` — picks up the v0.5 application surface (Passkeys / WebAuthn, server-side Appearance + Localization, six additional OAuth presets: Discord / Facebook / LinkedIn / X / GitLab / Slack).
+- `appVersion` rolled forward to `"0.5.0"` — the stable `ghcr.io/authn-sh/authn:0.5.0` image ships alongside this chart. Operators wanting an alpha can set `image.tag=0.5.0-alpha.N` explicitly.
+
+No template / `values.yaml` changes: v0.5 added no new required env vars, secrets, or external dependencies. WebAuthn derives the RP-ID from each environment's FAPI host at request time, and appearance / localization blobs are stored in Postgres and served by the existing FAPI / BAPI routes — no chart-level wiring required. Existing 0.4.x installs upgrade cleanly.
+
+### Notes for operators
+
+- Two new BAPI surfaces are now reachable through the existing BAPI ingress: `PATCH /v1/instance/appearance` and `PATCH /v1/instance/localization`. The dashboard editors call these — no extra routing or auth wiring is needed.
+- A new **public** FAPI surface is reachable through the existing FAPI ingress: `GET /v1/localization/{locale}`. This route is CORS-open and is hit on every page load by the SDK to fetch the active localization bundle. Self-hosters who front their FAPI host with their own CDN should respect the `Cache-Control` / `ETag` headers the app emits (defaults to a short TTL with revalidation) so that operator edits in the dashboard propagate within seconds, not hours.
+
 ## [0.4.0] — 2026-05-10
 
 ### Changed
