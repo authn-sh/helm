@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0] — 2026-05-12
+
+### Changed
+
+- Chart `version` bumped to `0.7.0` — picks up the v0.7 application surface (OAuth provider mode — env as an IdP — and JWT templates).
+- `appVersion` rolled forward to `"0.7.0"` — the stable `ghcr.io/authn-sh/authn:0.7.0` image ships alongside this chart. Operators wanting an alpha can set `image.tag=0.7.0-alpha.N` explicitly.
+
+No template / `values.yaml` changes: v0.7 added no new required env vars, secrets, or external dependencies. The new IdP-mode endpoints (`/oauth/authorize`, `/oauth/token`, `/oauth/userinfo`, `/oauth/token_info`, `/.well-known/openid-configuration`) all reuse the existing FAPI ingress — they're top-level OAuth-spec paths served by the same FAPI service, so no extra Ingress rules, Service definitions, or routing wiring is required. Existing 0.6.x installs upgrade cleanly.
+
+### Notes for operators
+
+- The v0.7 application adds the following endpoints, all served through the existing FAPI ingress:
+  - **FAPI (OAuth provider mode)** — `GET /oauth/authorize` (authorization-code grant per RFC 6749 §4.1 + OIDC §3.1.2.1), `POST /oauth/token` (authorization_code + refresh_token grants), `POST /oauth/token_info` (RFC 7662 introspection), `GET /oauth/userinfo` (OIDC userinfo, scope-filtered), `GET /.well-known/openid-configuration` (per-env discovery document — public, CORS-open).
+  - **BAPI** — `/v1/oauth-applications` (CRUD + `/rotate-secret` + per-app `/authorization-grants` admin view), `/v1/jwt-templates` (CRUD + `/v1/users/{user_id}/jwt-templates/{name}/tokens` backend-issuance), BAPI SCIM admin mirror at `/v1/organizations/{org_id}/scim/*` (closes the v0.6 deferral), `/v1/enterprise-accounts` spec backfill.
+  - **FAPI (user-scoped)** — `/v1/me/oauth-authorization-grants` (list / get / revoke — backs the new `<UserProfile />` **Authorized apps** section).
+- The discovery document at `/.well-known/openid-configuration` is **per-env** (different per workspace / project / env), so the existing per-env subdomain routing already does the right thing — no chart-level changes needed. Self-hosters fronting the FAPI host with their own CDN should respect the `Cache-Control: public, max-age=300, stale-while-revalidate=86400` headers on this path so scope-registry changes propagate within minutes.
+- The matching JWKS at `/.well-known/jwks.json` is unchanged from v0.6 — OAuth provider mode reuses the env's existing signing keys.
+- For JWT templates that opt into a **custom signing key** (HS256 shared secret, or an asymmetric key separate from the env's primary JWKS), the public-key JWKS is surfaced per template at `/.well-known/jwt-template-jwks/<template-name>.json`. Same cache-header guidance applies.
+
 ## [0.6.0] — 2026-05-11
 
 ### Changed
