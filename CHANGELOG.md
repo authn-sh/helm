@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.6.0] — 2026-05-11
+
+### Changed
+
+- Chart `version` bumped to `0.6.0` — picks up the v0.6 application surface (Enterprise SSO with unified SAML + OIDC connection model, SCIM 2.0 provisioning, verified-domain sign-in routing).
+- `appVersion` rolled forward to `"0.6.0"` — the stable `ghcr.io/authn-sh/authn:0.6.0` image ships alongside this chart. Operators wanting an alpha can set `image.tag=0.6.0-alpha.N` explicitly.
+- `values.yaml` comments document two new optional env-var keys for the SAML SP signing key (`AUTHN_SAML_SP_SIGNING_KEY_PATH`, `AUTHN_SAML_SP_SIGNING_KEY_B64`). Both are optional — connections without a configured key skip signing AuthnRequests, which most IdPs accept.
+
+No template changes. The new BAPI / FAPI / SCIM surfaces reuse the existing FAPI ingress — no extra Service, Ingress, or route wiring is required. Existing 0.5.x installs upgrade cleanly.
+
+### Notes for operators
+
+- The v0.6 application adds the following endpoints, all served through the existing FAPI ingress:
+  - **BAPI** — `/v1/enterprise-connections` (CRUD + dry-run probe), `/v1/enterprise-accounts` (read + unlink).
+  - **FAPI** (org admin surface) — `/v1/organizations/{org_id}/enterprise-connections` (CRUD + probe), `/v1/organizations/{org_id}/scim/endpoint`, `/v1/organizations/{org_id}/scim/tokens` (issue + revoke), `/v1/organizations/{org_id}/scim/attribute-mappings`.
+  - **FAPI** (IdP-facing SCIM) — `/scim/v2/Users`, `/scim/v2/Groups`, `/scim/v2/ServiceProviderConfig`, `/scim/v2/ResourceTypes`, `/scim/v2/Schemas`. Authenticated by per-org bearer SCIM tokens.
+  - **FAPI** (browser callbacks) — `/v1/saml/{id}/acs`, `/v1/saml/{id}/metadata`, `/v1/enterprise-sso-callback`.
+- The optional SAML SP signing key is read at request time from one of two env vars (mutually exclusive — `*_PATH` wins if both are set):
+  - `AUTHN_SAML_SP_SIGNING_KEY_PATH` — filesystem path to a PEM-encoded private key. Preferred for k8s — pair with a Secret volume mount:
+    ```yaml
+    extraEnv:
+      - name: AUTHN_SAML_SP_SIGNING_KEY_PATH
+        value: /etc/authn-saml/sp-signing.pem
+    extraVolumes:
+      - name: saml-signing-key
+        secret:
+          secretName: authn-saml-signing-key
+    extraVolumeMounts:
+      - name: saml-signing-key
+        mountPath: /etc/authn-saml
+        readOnly: true
+    ```
+  - `AUTHN_SAML_SP_SIGNING_KEY_B64` — base64-encoded PEM as an inline env value. Useful when a file mount isn't practical (e.g. SecretsManager-fed env on ECS).
+- Per-connection `saml_signing_key` (stored encrypted on `EnterpriseConnection`) takes precedence over the instance-wide env var when set. Self-hosters with one tenant and one IdP can configure the env var and skip the per-connection key entirely.
+
 ## [0.5.0] — 2026-05-11
 
 ### Changed
