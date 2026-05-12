@@ -55,6 +55,33 @@ env:
 #   AUTHN_SMS_VONAGE_FROM_NUMBER
 # Put the *_AUTH_TOKEN / *_API_SECRET values under `secrets.values` rather than
 # `extraEnv` so they're delivered as Kubernetes Secrets, not plain env.
+#
+# Enterprise SSO — optional SAML SP signing key (v0.6+) — used to sign outbound
+# AuthnRequests / LogoutRequests when an IdP rejects unsigned ones. Both keys
+# are optional; connections without a configured key skip signing, which most
+# IdPs accept. A per-connection `EnterpriseConnection.saml_signing_key` takes
+# precedence over the env-var fallback when set. Mutually exclusive — if both
+# are set, `*_PATH` wins:
+#   AUTHN_SAML_SP_SIGNING_KEY_PATH   — filesystem path to a PEM-encoded private
+#                                       key. Preferred — pair with a k8s Secret
+#                                       volume mount via `extraVolumes` /
+#                                       `extraVolumeMounts`:
+#                                         extraEnv:
+#                                           - name: AUTHN_SAML_SP_SIGNING_KEY_PATH
+#                                             value: /etc/authn-saml/sp-signing.pem
+#                                         extraVolumes:
+#                                           - name: saml-signing-key
+#                                             secret:
+#                                               secretName: authn-saml-signing-key
+#                                         extraVolumeMounts:
+#                                           - name: saml-signing-key
+#                                             mountPath: /etc/authn-saml
+#                                             readOnly: true
+#   AUTHN_SAML_SP_SIGNING_KEY_B64    — base64-encoded PEM as an inline env. Use
+#                                       when file mounts aren't practical (e.g.
+#                                       SecretsManager-fed env on ECS). Put the
+#                                       value under `secrets.values` so it
+#                                       ships as a k8s Secret, not plain env.
 extraEnv: []
 
 secrets:
