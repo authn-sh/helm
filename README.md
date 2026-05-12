@@ -109,6 +109,20 @@ One **public** FAPI endpoint added in v0.5 to be aware of:
 
 - `GET /v1/localization/{locale}` — CORS-open, hit on every Account Portal / SDK page load. The app emits a short TTL with `ETag`-based revalidation. If you front your FAPI host with your own CDN, respect these headers so that operator edits in the dashboard propagate to end-user browsers within seconds rather than minutes.
 
+### OAuth provider mode (v0.7)
+
+In v0.7 the application can serve as an **OAuth 2.0 / OIDC identity provider** — third-party apps redirect users to your env for sign-in and receive standard OAuth tokens. The endpoints all live on the existing FAPI ingress (no new Service / Ingress / routing rules required):
+
+- `GET /oauth/authorize` — authorization-code grant entry point (RFC 6749 §4.1 + OIDC §3.1.2.1). Renders sign-in + consent UI for the user, then `302` to the registered `redirect_uri`.
+- `POST /oauth/token` — `authorization_code` + `refresh_token` grants. Issues `access_token` / `refresh_token` / `id_token`.
+- `POST /oauth/token_info` — RFC 7662 token introspection.
+- `GET /oauth/userinfo` — OIDC userinfo. Bearer-token authenticated. Scope-filtered claims.
+- `GET /.well-known/openid-configuration` — per-env OIDC discovery document. **Public, CORS-open**, cached `public, max-age=300, stale-while-revalidate=86400`. Self-hosters fronting the FAPI host with a CDN should respect those cache headers so scope-registry changes propagate within minutes.
+
+The matching JWKS at `/.well-known/jwks.json` (unchanged from earlier versions) signs OAuth provider mode `id_token`s and `access_token`s alongside the env's regular session tokens — no separate signing key required.
+
+For JWT templates that opt into a **custom signing key** (HS256 shared secret, or an asymmetric key separate from the env's primary JWKS), the public-key JWKS is surfaced per template at `GET /.well-known/jwt-template-jwks/<template-name>.json`. Same cache-header guidance applies.
+
 ## Acceptance / smoke
 
 ```bash
